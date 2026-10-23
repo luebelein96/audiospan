@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audiospan — React example</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: #12141a; color: #e8e8ec; }
+    main { max-width: 640px; margin: 0 auto; padding: 24px; display: grid; gap: 16px; }
+    button { background: #2a2d37; color: inherit; border: 1px solid #3a3e4b; border-radius: 4px; padding: 6px 12px; font: inherit; cursor: pointer; }
+    button:disabled { opacity: .5; }
+    .control { display: grid; grid-template-columns: 100px 1fr 80px; gap: 8px; align-items: center; }
+    .error { color: #ff7b72; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="./dist/app.js"></script>
+</body>
+</html>

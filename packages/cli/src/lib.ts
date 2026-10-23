@@ -1,0 +1,16 @@
+export { parseArgs, type ParsedArgs } from "./args.js";
+export { CliError, type CliExitCode } from "./errors.js";
+export { loadProjectConfig, parseProjectConfig, CONFIG_FILE, type ProjectConfig, type CppBuildConfig, type RustBuildConfig } from "./config.js";
+export { detectEmcc, detectCargo, detectRustWasmTarget, compareVersions, MIN_EMCC_VERSION, MIN_RUST_VERSION, type ToolInfo } from "./toolchain.js";
+export { renderTemplate, renderTemplateFile, substitute, TEMPLATES_DIR, type RenderOptions, type RenderResult } from "./template.js";
+export { createTar, createTarGz, sha256, type TarEntry } from "./tar.js";
+export { startDevServer, resolvePackageFile, MIME_TYPES, type DevServer, type DevServerOptions } from "./server.js";
+export { createProject, validateProjectName, TEMPLATES, type CreateOptions, type CreateResult, type TemplateName } from "./commands/create.js";
+export { initProject, type InitOptions, type InitResult } from "./commands/init.js";
+export { wirePluginIntoApp, componentName, detectPackageManager, type WireOptions, type WireResult } from "./commands/react-app.js";
+export { buildPlugin, emccCommand, loadManifest, type BuildOptions, type BuildResult } from "./commands/build.js";
+export { generateBindings, generateCppHeader, generateRustModule, generateTypes, writeBindings, writeTypes, cppConstant, rustConstant, typePrefix, GENERATED_DIR, type GeneratedBindings } from "./generate.js";
+export { validateArtifact, DEFAULT_ARTIFACT_POLICY, type ArtifactPolicy, type ArtifactReport } from "./commands/validate.js";
+export { packArtifact, PACKAGE_FORMAT_VERSION, type PackOptions, type PackResult } from "./commands/pack.js";
+export { testArtifact, runGenericChecks, runVectorCases, recordVectorExpectations, generateInput, expectedOutput, type VectorCase, type VectorFile, type TestRunResult, type TestResultEntry, type TestOptions } from "./commands/test.js";
+export { startDev, watchAndBuild, audiospanVirtualFiles, type DevOptions, type DevResult } from "./commands/dev.js";

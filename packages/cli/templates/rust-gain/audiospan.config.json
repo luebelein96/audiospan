@@ -1,0 +1,10 @@
+{
+  "language": "rust",
+  "manifest": "plugin.json",
+  "outDir": "dist",
+  "presetsDir": "presets",
+  "rust": {
+    "crateDir": ".",
+    "profile": "release"
+  }
+}

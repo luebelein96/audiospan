@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8" /><title>Audiospan offline harness</title></head>
+<body>
+<p>Audiospan browser harness. Results are exposed on <code>window.audiospanHarness</code>.</p>
+<script type="module">
+  import { AudiospanHost, AudiospanError } from "/__audiospan/sdk.js";
+
+  const WORKLET = "/__audiospan/worklet.js";
+  const PLUGIN = "/plugins/gain-cpp/dist/plugin.json";
+  const SAMPLE_RATE = 48000;
+  const FRAMES = 128 * 20;
+
+  async function createOfflineHost(options = {}) {
+    const context = new OfflineAudioContext(2, FRAMES, SAMPLE_RATE);
+    const host = await AudiospanHost.create({ audioContext: context, workletUrl: WORKLET, diagnostics: true, ...options });
+    const source = context.createConstantSource();
+    source.offset.value = 0.5;
+    source.start(0);
+    host.connectSource(source);
+    host.connectDestination(context.destination);
+    return { context, host };
+  }
+
+  function stats(buffer) {
+    const out = [];
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const data = buffer.getChannelData(c);
+      // Skip the first quantum: the constant source and worklet may need a block to settle.
+      const slice = data.subarray(256);
+      let min = Infinity, max = -Infinity, sum = 0;
+      for (const v of slice) { if (v < min) min = v; if (v > max) max = v; sum += v; }
+      out.push({ min, max, mean: sum / slice.length });
+    }
+    return out;
+  }
+
+  const harness = {
+    crossOriginIsolated: globalThis.crossOriginIsolated === true,
+    sharedArrayBuffer: typeof SharedArrayBuffer !== "undefined",
+
+    // No workletUrl (embedded worklet through a blob URL) and the one-call addPlugin path.
+    async embedded(value) {
+      const context = new OfflineAudioContext(2, FRAMES, SAMPLE_RATE);
+      const host = await AudiospanHost.create({ audioContext: context });
+      const source = context.createConstantSource();
+      source.offset.value = 0.5;
+      source.start(0);
+      host.connectSource(source);
+      host.connectDestination(context.destination);
+      const plugin = await host.addPlugin(PLUGIN);
+      plugin.setParameter("gain", value);
+      await host.sync();
+      const rendered = await context.startRendering();
+      const result = { chain: host.getActiveChain()?.getPlugins().map((p) => p.id) ?? [], channels: stats(rendered), outputs: plugin.descriptor.outputs.map((o) => o.id) };
+      await host.dispose();
+      return result;
+    },
+
+    async gain(value) {
+      const { context, host } = await createOfflineHost();
+      const descriptor = await host.loadPlugin(PLUGIN);
+      const plugin = await host.createPlugin(descriptor.id);
+      const chain = host.createChain();
+      chain.add(plugin);
+      await host.connectChain(chain);
+      plugin.setParameter("gain", value);
+      await host.sync();
+      const rendered = await context.startRendering();
+      const result = { descriptor: { id: descriptor.id, parameters: descriptor.parameters.map((p) => p.id), presets: descriptor.presets.map((p) => p.id) }, channels: stats(rendered), status: plugin.status };
+      await host.dispose();
+      return result;
+    },
+
+    async bypass() {
+      const { context, host } = await createOfflineHost();
+      const descriptor = await host.loadPlugin(PLUGIN);
+      const plugin = await host.createPlugin(descriptor.id);
+      const chain = host.createChain();
+      chain.add(plugin);
+      await host.connectChain(chain);
+      plugin.setParameter("gain", 0);
+      plugin.setBypassed(true);
+      await host.sync();
+      const rendered = await context.startRendering();
+      const result = stats(rendered);
+      await host.dispose();
+      return result;
+    },
+
+    async chainOrder() {
+      const { context, host } = await createOfflineHost();
+      const descriptor = await host.loadPlugin(PLUGIN);
+      const a = await host.createPlugin(descriptor.id, { instanceId: "a" });
+      const b = await host.createPlugin(descriptor.id, { instanceId: "b" });
+      a.setParameter("gain", 2);
+      b.setParameter("gain", 0.25);
+      const chain = host.createChain();
+      chain.add(a);
+      chain.add(b);
+      await host.connectChain(chain);
+      await host.sync();
+      const rendered = await context.startRendering();
+      const result = { channels: stats(rendered), order: chain.getPlugins().map((p) => p.id) };
+      await host.dispose();
+      return result;
+    },
+
+    async state() {
+      const { context, host } = await createOfflineHost();
+      const descriptor = await host.loadPlugin(PLUGIN);
+      const plugin = await host.createPlugin(descriptor.id);
+      plugin.setParameter("gain", 1.5);
+      const saved = await plugin.getState();
+      await plugin.loadPreset("half");
+      const afterPreset = plugin.getParameter("gain");
+      await plugin.setState(saved);
+      const restored = plugin.getParameter("gain");
+      let rejected = null;
+      try { await plugin.setState({ ...saved, pluginId: "other" }); } catch (e) { rejected = e instanceof AudiospanError ? e.code : String(e); }
+      await host.dispose();
+      return { saved, afterPreset, restored, rejected, opaqueLength: saved.opaqueState?.length ?? 0 };
+    },
+
+    async errors() {
+      const { host } = await createOfflineHost();
+      const codes = {};
+      try { await host.loadPlugin("/plugins/does-not-exist/plugin.json"); } catch (e) { codes.missing = e instanceof AudiospanError ? e.code : String(e); }
+      try { await host.loadPlugin("/__audiospan/worklet.js"); } catch (e) { codes.notJson = e instanceof AudiospanError ? e.code : String(e); }
+      try { await host.loadPlugin("https://example.com/plugin.json"); } catch (e) { codes.remote = e instanceof AudiospanError ? e.code : String(e); }
+      try { await host.createPlugin("nope"); } catch (e) { codes.unknownPlugin = e instanceof AudiospanError ? e.code : String(e); }
+      await host.dispose();
+      try { await host.loadPlugin(PLUGIN); } catch (e) { codes.disposed = e instanceof AudiospanError ? e.code : String(e); }
+      return codes;
+    },
+
+    async badWorklet() {
+      const context = new OfflineAudioContext(2, 128, SAMPLE_RATE);
+      try {
+        await AudiospanHost.create({ audioContext: context, workletUrl: "/missing-worklet.js", requestTimeoutMs: 2000 });
+        return "no error";
+      } catch (e) {
+        return e instanceof AudiospanError ? { code: e.code, message: e.message } : String(e);
+      }
+    },
+
+    async dispose() {
+      const { host } = await createOfflineHost();
+      const descriptor = await host.loadPlugin(PLUGIN);
+      const plugin = await host.createPlugin(descriptor.id);
+      let events = 0;
+      const off = plugin.on("parameterchange", () => events++);
+      plugin.setParameter("gain", 0.3);
+      off();
+      plugin.setParameter("gain", 0.4);
+      await host.dispose();
+      return { events, pluginStatus: plugin.status, hostStatus: host.status, nodeConnected: host.node !== null };
+    },
+  };
+  window.audiospanHarness = harness;
+  document.body.dataset.ready = "true";
+</script>
+</body>
+</html>

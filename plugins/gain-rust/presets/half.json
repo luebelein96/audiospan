@@ -1,0 +1,13 @@
+{
+  "id": "half",
+  "name": "Half",
+  "description": "Attenuate by 6 dB.",
+  "state": {
+    "schemaVersion": 1,
+    "pluginId": "dev.audiospan.gain-rust",
+    "pluginVersion": "0.1.0",
+    "parameters": {
+      "gain": 0.5
+    }
+  }
+}

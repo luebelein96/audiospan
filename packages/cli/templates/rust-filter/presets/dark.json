@@ -1,0 +1,6 @@
+{
+  "id": "dark",
+  "name": "Dark",
+  "description": "300 Hz with a little resonance.",
+  "state": { "schemaVersion": 1, "pluginId": "__PLUGIN_ID__", "pluginVersion": "0.1.0", "parameters": { "cutoff": 300, "q": 1.5 } }
+}

@@ -1,0 +1,24 @@
+[package]
+name = "__CRATE_NAME__"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+
+[features]
+# Enabled by `audiospan build --dev`: imports env.audiospan_log for abi::log().
+audiospan-log = []
+
+[profile.release]
+opt-level = 2
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+panic = "abort"

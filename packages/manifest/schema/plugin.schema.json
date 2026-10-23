@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiospan.dev/schema/plugin-v1.schema.json",
+  "title": "Audiospan plugin manifest (schema version 1)",
+  "description": "Describes an Audiospan plugin artifact: metadata, WASM entry, audio ports, parameters, read-only outputs, capabilities, resource limits and presets. The reference validator in @audiospan/manifest enforces additional cross-field rules (min <= default <= max, unique ids, safe paths, host policy).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "name", "version", "entry", "audio", "parameters"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "id": {
+      "type": "string",
+      "description": "Stable reverse-DNS style identifier, e.g. com.example.gain.",
+      "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*(?:\\.[a-z0-9]+(?:[-_][a-z0-9]+)*){1,}$",
+      "maxLength": 128
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the plugin.",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "vendor": { "type": "string", "maxLength": 256 },
+    "description": { "type": "string", "maxLength": 2048 },
+    "category": { "type": "string", "maxLength": 64 },
+    "license": { "type": "string", "maxLength": 128 },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wasm", "abi"],
+      "properties": {
+        "wasm": { "$ref": "#/$defs/relativePath" },
+        "abi": { "const": "audiospan-c" }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "outputs"],
+      "properties": {
+        "inputs": { "type": "array", "maxItems": 1, "items": { "$ref": "#/$defs/port" } },
+        "outputs": { "type": "array", "minItems": 1, "maxItems": 1, "items": { "$ref": "#/$defs/port" } },
+        "maxFramesPerProcess": { "type": "integer", "minimum": 1, "maximum": 65536, "default": 4096 },
+        "latencyFrames": { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "parameters": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/parameter" }
+    },
+    "outputs": {
+      "type": "array",
+      "maxItems": 128,
+      "description": "Read-only values the plugin computes (meters, gain reduction). Order defines the indices passed to audiospan_get_output.",
+      "items": { "$ref": "#/$defs/output" }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": { "type": "boolean", "default": true },
+        "presets": { "type": "boolean", "default": false },
+        "customUI": { "type": "boolean", "default": false },
+        "midiInput": { "const": false },
+        "sidechain": { "const": false },
+        "network": { "const": false },
+        "filesystem": { "const": false }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxMemoryBytes": { "type": "integer", "minimum": 1, "maximum": 1073741824, "default": 16777216 },
+        "maxStateBytes": { "type": "integer", "minimum": 1, "maximum": 67108864, "default": 1048576 },
+        "maxAssetBytes": { "type": "integer", "minimum": 1, "maximum": 268435456, "default": 1048576 }
+      }
+    },
+    "presets": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "path"],
+        "properties": {
+          "id": { "$ref": "#/$defs/shortId" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+          "path": { "$ref": "#/$defs/relativePath" },
+          "description": { "type": "string", "maxLength": 1024 }
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry"],
+      "properties": {
+        "entry": { "$ref": "#/$defs/relativePath" }
+      }
+    }
+  },
+  "$defs": {
+    "shortId": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$" },
+    "displayFormat": { "enum": ["linear", "decibel", "percent", "hertz", "milliseconds", "seconds", "integer", "semitones", "cents", "beats"] },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/shortId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "unit": { "type": "string", "maxLength": 32 },
+        "description": { "type": "string", "maxLength": 1024 },
+        "min": { "type": "number", "default": 0 },
+        "max": { "type": "number", "default": 1 },
+        "display": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "format": { "$ref": "#/$defs/displayFormat" },
+            "precision": { "type": "integer", "minimum": 0, "maximum": 10 }
+          }
+        }
+      }
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "Path relative to plugin.json. No leading slash, no scheme, no '..' segments, no backslashes.",
+      "pattern": "^(?!/)(?![a-zA-Z][a-zA-Z0-9+.-]*:)(?!.*(^|/)\\.\\.?(/|$))(?!.*//)[^\\\\?#%\\u0000-\\u001f\\u007f]+$"
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "channels"],
+      "properties": {
+        "id": { "$ref": "#/$defs/shortId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "channels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "integer", "minimum": 1, "maximum": 32 },
+            "max": { "type": "integer", "minimum": 1, "maximum": 32 }
+          }
+        }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "type", "default"],
+      "properties": {
+        "id": { "$ref": "#/$defs/shortId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "type": { "enum": ["float", "integer", "boolean", "enum"] },
+        "unit": { "type": "string", "maxLength": 32 },
+        "description": { "type": "string", "maxLength": 1024 },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "default": { "type": "number" },
+        "step": { "type": "number", "exclusiveMinimum": 0 },
+        "scale": { "enum": ["linear", "logarithmic"], "default": "linear", "description": "Mapping between real values and the normalized control position. logarithmic requires min > 0." },
+        "skew": { "type": "number", "exclusiveMinimum": 0, "maximum": 100, "default": 1, "description": "Power-curve skew of the normalized position; below 1 gives more resolution near min. Linear scale only." },
+        "automatable": { "type": "boolean", "default": true },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "label"],
+            "properties": {
+              "value": { "type": "number" },
+              "label": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "display": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": { "enum": ["knob", "slider", "stepper", "toggle", "select"] },
+            "format": { "$ref": "#/$defs/displayFormat" },
+            "precision": { "type": "integer", "minimum": 0, "maximum": 10 },
+            "bipolar": { "type": "boolean", "default": false, "description": "The control's rest position is zero (or the centre when zero is out of range)." }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "enum": ["float", "integer"] } } },
+          "then": { "required": ["min", "max"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "enum" } } },
+          "then": { "required": ["options"] }
+        }
+      ]
+    }
+  }
+}

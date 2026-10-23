@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "__PLUGIN_ID__",
+  "name": "__PLUGIN_NAME__",
+  "version": "0.1.0",
+  "vendor": "__VENDOR__",
+  "description": "__PLUGIN_DESCRIPTION__",
+  "category": "utility",
+  "entry": { "wasm": "module.wasm", "abi": "audiospan-c" },
+  "audio": {
+    "inputs": [{ "id": "in", "name": "Input", "channels": { "min": 1, "max": 2 } }],
+    "outputs": [{ "id": "out", "name": "Output", "channels": { "min": 1, "max": 2 } }]
+  },
+  "parameters": [
+    { "id": "gain", "name": "Gain", "type": "float", "min": 0, "max": 2, "default": 1, "step": 0.01,
+      "display": { "style": "slider", "format": "linear", "precision": 2 } }
+  ],
+  "capabilities": { "presets": true },
+  "presets": [
+    { "id": "default", "name": "Default", "path": "presets/default.json" }
+  ]
+}

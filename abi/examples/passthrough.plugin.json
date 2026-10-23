@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "dev.audiospan.examples.passthrough",
+  "name": "Pass-through (C)",
+  "version": "0.1.0",
+  "vendor": "Audiospan",
+  "description": "Minimal plain-C ABI example with a mute switch.",
+  "entry": { "wasm": "passthrough.wasm", "abi": "audiospan-c" },
+  "audio": {
+    "inputs": [{ "id": "in", "name": "Input", "channels": { "min": 1, "max": 2 } }],
+    "outputs": [{ "id": "out", "name": "Output", "channels": { "min": 1, "max": 2 } }]
+  },
+  "parameters": [{ "id": "mute", "name": "Mute", "type": "boolean", "default": 0 }],
+  "capabilities": { "state": true }
+}

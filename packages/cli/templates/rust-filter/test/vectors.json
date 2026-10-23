@@ -1,0 +1,11 @@
+{
+  "$comment": "Run with `audiospan test` (48 kHz). Arrays compare the first N output samples; omit \"expect\" and `audiospan test --update` records the current output.",
+  "tolerance": 1e-6,
+  "cases": [
+    { "name": "silence stays silent", "parameters": {}, "input": "silence", "expect": "silence" },
+    { "name": "impulse response at the defaults (1 kHz, Q 0.707)", "parameters": {}, "input": "impulse", "channels": 1,
+      "expect": [0.003916077, 0.014941078, 0.027784692, 0.03802228, 0.045933941, 0.051788867, 0.055842969, 0.058337115] },
+    { "name": "impulse response at 200 Hz, Q 2", "parameters": { "cutoff": 200, "q": 2 }, "input": "impulse", "channels": 2,
+      "expect": [0.000170224, 0.000678565, 0.001350057, 0.002011899, 0.002663764, 0.00330534, 0.003936322, 0.004556419] }
+  ]
+}

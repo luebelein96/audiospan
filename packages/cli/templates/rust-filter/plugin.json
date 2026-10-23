@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "__PLUGIN_ID__",
+  "name": "__PLUGIN_NAME__",
+  "version": "0.1.0",
+  "vendor": "__VENDOR__",
+  "description": "__PLUGIN_DESCRIPTION__",
+  "category": "filter",
+  "entry": { "wasm": "module.wasm", "abi": "audiospan-c" },
+  "audio": {
+    "inputs": [{ "id": "in", "name": "Input", "channels": { "min": 1, "max": 2 } }],
+    "outputs": [{ "id": "out", "name": "Output", "channels": { "min": 1, "max": 2 } }]
+  },
+  "parameters": [
+    { "id": "cutoff", "name": "Cutoff", "type": "float", "min": 20, "max": 20000, "default": 1000, "scale": "logarithmic",
+      "display": { "style": "knob", "format": "hertz", "precision": 0 } },
+    { "id": "q", "name": "Resonance", "type": "float", "min": 0.1, "max": 10, "default": 0.707, "scale": "logarithmic",
+      "display": { "style": "knob", "precision": 2 } }
+  ],
+  "outputs": [
+    { "id": "level", "name": "Level", "min": 0, "max": 1, "display": { "format": "linear", "precision": 2 } }
+  ],
+  "capabilities": { "presets": true },
+  "presets": [
+    { "id": "default", "name": "Default", "path": "presets/default.json" },
+    { "id": "dark", "name": "Dark", "path": "presets/dark.json" }
+  ]
+}

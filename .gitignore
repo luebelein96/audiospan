@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+target/
+*.tsbuildinfo
+.DS_Store
+coverage/
+test-results/
+playwright-report/
+*.log
+.env
+.env.*
+
+# Generated bindings of the reference plugins (they use the explicit ABI, not the generated table).
+plugins/*/generated/
+packages/sdk/src/generated/

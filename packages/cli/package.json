@@ -1,0 +1,37 @@
+{
+  "name": "@audiospan/cli",
+  "version": "0.1.0",
+  "description": "Audiospan CLI: create, build, validate, pack, and serve audio plugins.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "audiospan": "./dist/index.js"
+  },
+  "main": "./dist/lib.js",
+  "types": "./dist/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/lib.js"
+    }
+  },
+  "files": [
+    "dist",
+    "templates",
+    "demo",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "typecheck": "tsc -b tsconfig.json"
+  },
+  "dependencies": {
+    "@audiospan/manifest": "workspace:*",
+    "@audiospan/runtime": "workspace:*",
+    "@audiospan/sdk": "workspace:*",
+    "@audiospan/ui": "workspace:*"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

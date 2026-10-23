@@ -1,0 +1,35 @@
+{
+  "name": "@audiospan/sdk",
+  "version": "0.1.0",
+  "description": "Audiospan host SDK: load, run, and control WASM audio plugins in the browser.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    },
+    "./bundle": "./dist/audiospan-sdk.bundle.js",
+    "./worklet": "./dist/audiospan-worklet.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -b tsconfig.json && node build-bundle.mjs",
+    "bundle": "node build-bundle.mjs",
+    "typecheck": "tsc -b tsconfig.json"
+  },
+  "dependencies": {
+    "@audiospan/manifest": "workspace:*",
+    "@audiospan/runtime": "workspace:*"
+  }
+}

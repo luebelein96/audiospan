@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audiospan — vanilla JavaScript example</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: #12141a; color: #e8e8ec; }
+    main { max-width: 640px; margin: 0 auto; padding: 24px; display: grid; gap: 16px; }
+    h1 { font-size: 20px; margin: 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    button { background: #2a2d37; color: inherit; border: 1px solid #3a3e4b; border-radius: 4px; padding: 6px 12px; font: inherit; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    #start { background: #6ea8fe; color: #0c1220; border-color: #6ea8fe; }
+    #status { padding: 8px 10px; background: #1d1f26; border-radius: 6px; }
+    #status[data-kind="error"] { color: #ff7b72; }
+    #log { font-size: 12px; color: #9a9fb0; white-space: pre-wrap; max-height: 160px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Audiospan vanilla example</h1>
+    <p>A 220 Hz oscillator runs through the reference gain plugin (compiled C++ → WASM) inside an AudioWorklet. Audio starts only after you click.</p>
+    <div class="row">
+      <button id="start" type="button">Start audio</button>
+      <button id="stop" type="button" disabled>Stop</button>
+      <button id="save" type="button" disabled>Save state</button>
+      <button id="restore" type="button" disabled>Restore state</button>
+    </div>
+    <div id="panel"></div>
+    <div id="status" role="status">Idle.</div>
+    <pre id="log"></pre>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

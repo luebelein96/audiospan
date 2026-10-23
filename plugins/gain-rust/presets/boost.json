@@ -1,0 +1,13 @@
+{
+  "id": "boost",
+  "name": "Boost",
+  "description": "Double the amplitude.",
+  "state": {
+    "schemaVersion": 1,
+    "pluginId": "dev.audiospan.gain-rust",
+    "pluginVersion": "0.1.0",
+    "parameters": {
+      "gain": 2
+    }
+  }
+}

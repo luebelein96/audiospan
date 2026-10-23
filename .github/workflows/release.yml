@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.74
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm build:wasm --strict
+      - run: pnpm test
+
+      - name: Pack reference plugin artifacts
+        run: |
+          node packages/cli/dist/index.js pack plugins/gain-cpp/dist --out release
+          node packages/cli/dist/index.js pack plugins/gain-rust/dist --out release
+          (cd release && sha256sum *.tar.gz > SHA256SUMS)
+
+      - name: Verify the tag matches package versions
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          for p in packages/*/package.json; do
+            V=$(node -p "require('./$p').version")
+            if [ "$V" != "$TAG" ]; then echo "$p is $V, tag is $TAG"; exit 1; fi
+          done
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.tar.gz
+            release/*.sha256
+            release/SHA256SUMS
+          generate_release_notes: true
+
+      - name: Publish to npm (requires NPM_TOKEN)
+        if: ${{ env.NPM_TOKEN != '' }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm -r --filter './packages/*' publish --access public --no-git-checks --provenance

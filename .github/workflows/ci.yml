@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          # Keep in step with the toolchain the reference plugin is built and tested with locally.
+          version: 5.0.7
+          actions-cache-folder: emsdk-cache
+
+      - name: Install Rust (wasm32 target)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Check vendored ABI headers
+        run: pnpm sync:abi --check
+
+      - name: Build reference plugins (C++ and Rust)
+        run: pnpm build:wasm --strict
+
+      - name: Validate artifacts
+        run: pnpm validate:artifacts
+
+      - name: Build and test the Rust templates from a fresh `audiospan create`
+        run: |
+          for template in filter gain; do
+            node packages/cli/dist/index.js create rust-$template --language rust --template $template --directory /tmp/rust-$template
+            node packages/cli/dist/index.js build --root /tmp/rust-$template
+            node packages/cli/dist/index.js test --root /tmp/rust-$template
+          done
+
+      - name: Unit, ABI conformance, and SDK end-to-end tests
+        run: pnpm test
+
+      - name: Build examples
+        run: pnpm build:examples
+
+      - name: Install Chromium for Playwright
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: pnpm test:browser
+        env:
+          CI: "1"
+
+      - name: Benchmark (report only)
+        run: node tests/performance/bench.mjs --blocks 2000 --json tests/performance/results/ci.json
+
+      - name: Pack reference plugins
+        run: |
+          node packages/cli/dist/index.js pack plugins/gain-cpp/dist --out artifacts
+          node packages/cli/dist/index.js pack plugins/gain-rust/dist --out artifacts
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audiospan-ci-${{ github.sha }}
+          path: |
+            artifacts/
+            tests/performance/results/ci.json
+            playwright-report/
+          if-no-files-found: ignore

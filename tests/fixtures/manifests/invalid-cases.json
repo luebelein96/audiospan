@@ -1,0 +1,15 @@
+[
+  { "name": "wrong schema version", "code": "MANIFEST_SCHEMA_VERSION_UNSUPPORTED", "patch": { "schemaVersion": 2 } },
+  { "name": "bad id", "code": "MANIFEST_ID_INVALID", "patch": { "id": "Gain Plugin" } },
+  { "name": "bad version", "code": "MANIFEST_VERSION_INVALID", "patch": { "version": "1.0" } },
+  { "name": "path traversal in wasm", "code": "MANIFEST_PATH_UNSAFE", "patch": { "entry": { "wasm": "../module.wasm", "abi": "audiospan-c" } } },
+  { "name": "absolute wasm path", "code": "MANIFEST_PATH_UNSAFE", "patch": { "entry": { "wasm": "/etc/module.wasm", "abi": "audiospan-c" } } },
+  { "name": "url wasm path", "code": "MANIFEST_PATH_UNSAFE", "patch": { "entry": { "wasm": "https://evil.example/module.wasm", "abi": "audiospan-c" } } },
+  { "name": "unsupported abi", "code": "MANIFEST_ABI_UNSUPPORTED", "patch": { "entry": { "wasm": "module.wasm", "abi": "clap-wasm" } } },
+  { "name": "network capability", "code": "MANIFEST_CAPABILITY_UNSUPPORTED", "patch": { "capabilities": { "network": true } } },
+  { "name": "memory over hard limit", "code": "MANIFEST_RESOURCES_INVALID", "patch": { "resources": { "maxMemoryBytes": 2147483648 } } },
+  { "name": "channel min > max", "code": "MANIFEST_PORT_CHANNELS_INVALID", "patch": { "audio": { "inputs": [{ "id": "in", "name": "In", "channels": { "min": 2, "max": 1 } }], "outputs": [{ "id": "out", "name": "Out", "channels": { "min": 1, "max": 2 } }] } } },
+  { "name": "no outputs", "code": "MANIFEST_AUDIO_INVALID", "patch": { "audio": { "inputs": [], "outputs": [] } } },
+  { "name": "two inputs", "code": "MANIFEST_AUDIO_UNSUPPORTED", "patch": { "audio": { "inputs": [{ "id": "a", "name": "A", "channels": { "min": 1, "max": 2 } }, { "id": "b", "name": "B", "channels": { "min": 1, "max": 2 } }], "outputs": [{ "id": "out", "name": "Out", "channels": { "min": 1, "max": 2 } }] } } },
+  { "name": "preset path traversal", "code": "MANIFEST_PATH_UNSAFE", "patch": { "presets": [{ "id": "x", "name": "X", "path": "presets/../../secret.json" }] } }
+]

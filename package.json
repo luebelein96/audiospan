@@ -1,0 +1,36 @@
+{
+  "name": "audiospan-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Audiospan: build audio plugins for the web.",
+  "type": "module",
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "pnpm run build:worklet && tsc -b tsconfig.json && pnpm -r --filter './packages/*' run bundle",
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "build:examples": "pnpm -r --filter './examples/*' run build",
+    "build:all": "pnpm run build:wasm && pnpm run build && pnpm run build:examples",
+    "typecheck": "pnpm run build:worklet && tsc -b tsconfig.json",
+    "test": "pnpm run build:worklet && vitest run",
+    "test:watch": "pnpm run build:worklet && vitest",
+    "test:browser": "playwright test -c tests/browser/playwright.config.ts",
+    "bench": "node tests/performance/bench.mjs",
+    "validate:artifacts": "node scripts/validate-artifact.mjs plugins/gain-cpp/dist plugins/gain-rust/dist",
+    "sync:abi": "node scripts/sync-abi-headers.mjs",
+    "dev": "node packages/cli/dist/index.js dev --root examples/vanilla-web --open index.html",
+    "clean": "rm -rf packages/*/dist examples/*/dist plugins/*/dist plugins/*/target test-results playwright-report",
+    "test:all": "pnpm test && pnpm test:browser",
+    "build:worklet": "pnpm --filter @audiospan/runtime run bundle && node packages/sdk/scripts/embed-worklet.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^26.0.0",
+    "esbuild": "^0.28.0",
+    "happy-dom": "^21.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.0"
+  }
+}

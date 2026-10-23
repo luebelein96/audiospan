@@ -1,0 +1,11 @@
+{
+  "id": "default",
+  "name": "Default",
+  "description": "Unity gain.",
+  "state": {
+    "schemaVersion": 1,
+    "pluginId": "__PLUGIN_ID__",
+    "pluginVersion": "0.1.0",
+    "parameters": { "gain": 1 }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "__PROJECT_NAME__-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "plugin": "audiospan build --root __PLUGIN_DIR__",
+    "plugin:watch": "audiospan dev --watch --root __PLUGIN_DIR__"
+  },
+  "dependencies": {
+    "@audiospan/react": "^__CLI_VERSION__",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.0.0"
+  }
+}

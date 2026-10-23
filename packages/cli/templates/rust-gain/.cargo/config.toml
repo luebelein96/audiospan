@@ -1,0 +1,12 @@
+[build]
+target = "wasm32-unknown-unknown"
+
+# Memory limits must match plugin.json "resources.maxMemoryBytes" (16 MiB here).
+# --max-memory makes the module declare a maximum so the host can enforce it.
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C", "target-feature=+simd128",
+  "-C", "link-arg=--initial-memory=1048576",
+  "-C", "link-arg=--max-memory=16777216",
+  "-C", "link-arg=-zstack-size=65536",
+]

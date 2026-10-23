@@ -1,0 +1,6 @@
+{
+  "id": "default",
+  "name": "Default",
+  "description": "1 kHz, Butterworth.",
+  "state": { "schemaVersion": 1, "pluginId": "__PLUGIN_ID__", "pluginVersion": "0.1.0", "parameters": { "cutoff": 1000, "q": 0.707 } }
+}

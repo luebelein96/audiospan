@@ -1,0 +1,13 @@
+{
+  "name": "@audiospan-examples/vanilla-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@audiospan/sdk": "workspace:*",
+    "@audiospan/ui": "workspace:*"
+  }
+}

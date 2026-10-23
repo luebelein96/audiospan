@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audiospan developer sandbox</title>
+  <link rel="stylesheet" href="/__audiospan/demo/demo.css" />
+</head>
+<body>
+  <main class="sandbox">
+    <header>
+      <h1>Audiospan sandbox</h1>
+      <p class="muted">Loads <code id="plugin-url"></code>. Rebuild your plugin and the sandbox reloads it.</p>
+    </header>
+
+    <section class="row">
+      <button id="start" type="button">Start audio</button>
+      <button id="stop" type="button" disabled>Stop</button>
+      <label>Source
+        <select id="source">
+          <option value="sine">Sine 220 Hz</option>
+          <option value="saw">Sawtooth 110 Hz</option>
+          <option value="noise">White noise</option>
+          <option value="mic">Microphone</option>
+        </select>
+      </label>
+      <label><input id="source-on" type="checkbox" checked /> Source on</label>
+      <label>Level <input id="level" type="range" min="0" max="1" step="0.01" value="0.3" /></label>
+    </section>
+
+    <section class="row">
+      <button id="save" type="button" disabled>Save state</button>
+      <button id="restore" type="button" disabled>Restore state</button>
+      <button id="reload" type="button" disabled>Reload plugin</button>
+      <label><input id="diag" type="checkbox" /> Diagnostics</label>
+    </section>
+
+    <section id="panel"></section>
+
+    <section>
+      <div id="status" role="status" class="status">Idle. Click “Start audio”.</div>
+      <pre id="log" class="log" aria-live="polite"></pre>
+    </section>
+
+    <details>
+      <summary>Using your own plugin</summary>
+      <ol>
+        <li>Run <code>audiospan build</code> in your project; the sandbox loads <code>dist/plugin.json</code> by default.</li>
+        <li>Pass <code>?plugin=/path/to/plugin.json</code> to load a different artifact served from this directory.</li>
+        <li>Rebuilding triggers an automatic reload (state is preserved when the plugin id is unchanged).</li>
+      </ol>
+    </details>
+  </main>
+  <script type="module" src="/__audiospan/demo/demo.js"></script>
+</body>
+</html>

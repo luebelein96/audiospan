@@ -1,0 +1,11 @@
+{
+  "$comment": "Run with `audiospan test`. Each case sets parameters by id, feeds a known input, and checks the output.",
+  "tolerance": 1e-6,
+  "cases": [
+    { "name": "unity gain passes signal", "parameters": { "gain": 1 }, "input": "ramp", "expect": "input*1" },
+    { "name": "half gain", "parameters": { "gain": 0.5 }, "input": "ramp", "expect": "input*0.5" },
+    { "name": "double gain does not clip", "parameters": { "gain": 2 }, "input": "constant:0.75", "expect": "input*2" },
+    { "name": "zero gain silences", "parameters": { "gain": 0 }, "input": "impulse", "expect": "silence" },
+    { "name": "silence stays silent", "parameters": { "gain": 1.5 }, "input": "silence", "expect": "silence" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@audiospan/runtime",
+  "version": "0.1.0",
+  "description": "Audiospan AudioWorklet runtime, WASM memory bridge, and message protocol.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./worklet": "./dist/audiospan-worklet.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -b tsconfig.json && node build-worklet.mjs",
+    "bundle": "node build-worklet.mjs",
+    "typecheck": "tsc -b tsconfig.json"
+  },
+  "dependencies": {
+    "@audiospan/manifest": "workspace:*"
+  }
+}
