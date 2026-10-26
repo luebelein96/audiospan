@@ -68,11 +68,12 @@ pub struct HostConfig {
 /// Safe view over one process call. Buffers are owned by the host and valid
 /// only for the duration of [`Effect::process`].
 pub struct ProcessContext {
-    frame_count: usize,
-    input_channels: usize,
-    output_channels: usize,
-    inputs: *const *const f32,
-    outputs: *const *mut f32,
+    // pub(crate): `audiospan_define_effect!` builds this in the crate root, outside this module.
+    pub(crate) frame_count: usize,
+    pub(crate) input_channels: usize,
+    pub(crate) output_channels: usize,
+    pub(crate) inputs: *const *const f32,
+    pub(crate) outputs: *const *mut f32,
 }
 
 impl ProcessContext {
