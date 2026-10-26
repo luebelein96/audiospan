@@ -3,8 +3,6 @@ title: "Getting started"
 description: "Hear the reference plugin in five minutes, then add Audiospan to your own app."
 ---
 
-Three ways in, from quickest to most involved: run the example in this repository, add Audiospan to a React app you already have, or build a plugin of your own.
-
 ## 1. From this repository
 
 ```sh
