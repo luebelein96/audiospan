@@ -1,0 +1,175 @@
+---
+title: Audiospan
+description: Build audio plugins for the web. Write an effect in C++ or Rust, compile it to WebAssembly, and use it from React.
+template: splash
+hero:
+  title: Build audio plugins for the web.
+  tagline: Write an effect in C++ or Rust and compile it to WebAssembly. Audiospan runs it in an AudioWorklet and gives you React hooks and controls for it.
+  actions:
+    - text: Get started
+      link: getting-started/
+      icon: right-arrow
+    - text: Read the tutorial
+      link: from-dsp-to-web/
+      icon: open-book
+      variant: minimal
+---
+
+import { CardGrid, LinkCard, TabItem, Tabs } from "@astrojs/starlight/components";
+
+<div class="as-steps not-content">
+  <div class="as-step">
+    <h3>Write the effect</h3>
+    <p>A C++ class or a Rust struct with a <code>process()</code> method. Your DSP stays as it is.</p>
+  </div>
+  <div class="as-step">
+    <h3>Build it</h3>
+    <p><code>audiospan build</code> compiles it to WebAssembly and generates typed bindings from <code>plugin.json</code>.</p>
+  </div>
+  <div class="as-step">
+    <h3>Use it in React</h3>
+    <p><code>usePlugin</code> loads it into an AudioWorklet. Knobs, meters and presets come from the manifest.</p>
+  </div>
+</div>
+
+<div class="as-split">
+<div class="as-split__text">
+
+## Write the plugin in C++ or Rust
+
+A plugin is a class with a constructor and a `process()` method. You write the DSP. The SDK's header handles parameters, state, presets and the C interface the host calls. Parameter ranges and defaults come from `plugin.json`.
+
+</div>
+<div class="as-split__code">
+
+<Tabs syncKey="lang">
+  <TabItem label="C++" icon="seti:cpp">
+
+```cpp title="src/plugin.cpp"
+#include "audiospan/effect.hpp"
+#include "audiospan_params.h"  // generated from plugin.json
+
+class GainEffect {
+ public:
+  explicit GainEffect(const audiospan::HostConfig& config)
+      : params_(plugin::kParameters, config.sampleRate) {}
+
+  audiospan::Parameters<plugin::kParamCount>& parameters() noexcept {
+    return params_;
+  }
+
+  void process(const audiospan::ProcessContext& ctx) noexcept {
+    for (uint32_t ch = 0; ch < ctx.outputChannels; ++ch) {
+      // Per-sample ramp towards the smoothed target: click-free.
+      auto gain = params_.ramp(plugin::kGain, ctx.frameCount);
+      const float* in = ctx.input(ch);
+      float* out = ctx.outputs[ch];
+      for (uint32_t i = 0; i < ctx.frameCount; ++i)
+        out[i] = in ? in[i] * static_cast<float>(gain.next()) : 0.0f;
+    }
+  }
+
+ private:
+  audiospan::Parameters<plugin::kParamCount> params_;
+};
+
+AUDIOSPAN_DEFINE_EFFECT(GainEffect, 16)
+```
+
+  </TabItem>
+  <TabItem label="Rust" icon="seti:rust">
+
+```rust title="src/lib.rs"
+pub mod abi;
+#[path = "../generated/audiospan_params.rs"] // generated from plugin.json
+mod params;
+
+use abi::{Effect, HostConfig, Parameters, ProcessContext};
+
+pub struct GainEffect {
+    params: Parameters,
+}
+
+impl Effect for GainEffect {
+    fn create(config: &HostConfig) -> Option<Self> {
+        let sample_rate = config.sample_rate as f64;
+        let params = Parameters::new(&params::PARAMETERS, sample_rate);
+        Some(Self { params })
+    }
+
+    fn parameters(&self) -> Option<&Parameters> {
+        Some(&self.params)
+    }
+    fn parameters_mut(&mut self) -> Option<&mut Parameters> {
+        Some(&mut self.params)
+    }
+
+    fn process(&mut self, ctx: &mut ProcessContext) {
+        for ch in 0..ctx.output_channels() {
+            // Per-sample ramp towards the smoothed target: click-free.
+            let mut gain = self.params.ramp(params::GAIN, ctx.frame_count());
+            if let Some((input, output)) = ctx.io(ch) {
+                for (i, out) in output.iter_mut().enumerate() {
+                    *out = input.map_or(0.0, |x| x[i]) * gain.next() as f32;
+                }
+            }
+        }
+    }
+}
+
+audiospan_define_effect!(GainEffect, 16);
+```
+
+  </TabItem>
+</Tabs>
+
+</div>
+</div>
+
+<div class="as-split as-split--reverse">
+<div class="as-split__text">
+
+## Use it from React
+
+`audiospan create --app react` sets up a plugin and a Vite app together. `audiospan init` adds a plugin to a React project you already have. Either way you get a component like this one, and the plugin's parameter, output and preset ids are type-checked.
+
+- `useAudiospanHost` creates the AudioContext and the host when the user clicks Start.
+- `usePlugin` loads the plugin and keeps its values and meters in React state.
+- `useAudioSource` connects a microphone, an `<audio>` element, a stream or any audio node.
+
+</div>
+<div class="as-split__code">
+
+```tsx title="src/audiospan/Lowpass.tsx"
+import {
+  Meters, ParameterControls, useAudioSource, useAudiospanHost, usePlugin,
+} from "@audiospan/react";
+import type { LowpassPlugin } from "../plugins/lowpass.js"; // generated
+
+const PLUGIN = "/plugins/lowpass/plugin.json";
+
+export function Lowpass() {
+  const audio = useAudiospanHost(); // owns the AudioContext and the host
+  const plugin = usePlugin<LowpassPlugin>(audio.host, PLUGIN); // load + chain
+  useAudioSource(audio, "microphone"); // or <audio>, a stream, a node
+  return (
+    <>
+      <button onClick={() => void audio.start()}>Start audio</button>
+      <ParameterControls plugin={plugin} />
+      <Meters plugin={plugin} />
+    </>
+  );
+}
+```
+
+</div>
+</div>
+
+## Next steps
+
+<CardGrid>
+  <LinkCard title="Getting started" href="getting-started/" description="Hear the reference plugin in five minutes, then add Audiospan to your own app." />
+  <LinkCard title="From your DSP to a web app" href="from-dsp-to-web/" description="Take an existing filter class to a running React app, step by step." />
+  <LinkCard title="Web app integration" href="web-app-integration/" description="React, bundlers, audio sources, chains, custom controls, saving state and deployment." />
+  <LinkCard title="CLI reference" href="cli/" description="create, init, build, generate, test, validate, pack, dev and doctor." />
+</CardGrid>

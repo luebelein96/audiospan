@@ -1,10 +1,13 @@
-# From your DSP to a web app
+---
+title: "From your DSP to a web app"
+description: "Take an existing C++ or Rust filter class to a running React app. Every file is complete."
+---
 
-You have DSP code: a filter, a compressor, a delay, written in C++ or Rust for a desktop plugin or a research project. This guide ends with a React app where a visitor clicks a button, hears the effect on their microphone, turns two knobs and watches a level meter. Every file below is complete and was built and tested as written.
+You have DSP code: a filter, a compressor, a delay, written in C++ or Rust for a desktop plugin or a research project. By the end of this guide it runs in a React app. A visitor clicks a button, hears the effect on their microphone, turns two knobs and watches a level meter. Every file on this page is complete, and all of it builds and runs as shown.
 
-The example is a resonant low-pass filter. Its DSP is a plain biquad class that knows nothing about Audiospan; the project the CLI generates for you contains exactly that class as a stand-in for your own code, so the work is: swap in your DSP, adjust a short adapter, describe the parameters once in `plugin.json`, and render one generated React component.
+The example is a resonant low-pass filter. Its DSP is a plain biquad class that knows nothing about Audiospan. The project the CLI generates contains that class as a stand-in for your own code, so the work is: swap in your DSP, adjust a short adapter, describe the parameters in `plugin.json`, and render one generated React component.
 
-Time: about half an hour the first time. Later ports of similar code take minutes.
+The first time takes about half an hour. Later ports of similar code take minutes.
 
 ## Before you start
 
@@ -12,7 +15,7 @@ Time: about half an hour the first time. Later ports of similar code take minute
 - For C++: the Emscripten SDK with `emcc` on your `PATH` (3.1.50 or newer). For Rust: a stable toolchain, 1.80 or newer, with `rustup target add wasm32-unknown-unknown`.
 - The Audiospan CLI: `npm install -g @audiospan/cli`. Run `audiospan doctor` to see which toolchains it can find.
 
-The division of labour is fixed, and knowing it up front makes the adapter obvious:
+The split between host and plugin is fixed. Knowing it up front makes the adapter easy to write:
 
 | The host does | Your plugin does |
 | --- | --- |
@@ -30,7 +33,7 @@ cd lowpass
 audiospan build && audiospan test
 ```
 
-(For Rust: `--language rust`.) The default template is this very filter, and it builds and passes its tests before you touch anything:
+Use `--language rust` for Rust. The default template is this exact filter. It builds and passes its tests before you change anything:
 
 ```
 plugin.json                    what the plugin is: parameters, outputs, ports, presets
@@ -45,7 +48,7 @@ test/vectors.json              known-input, known-output checks for `audiospan t
 
 ## 2. Bring your DSP
 
-`src/biquad.h` has the shape most hand-written DSP has: a prepare call that takes the sample rate, setters that compute coefficients, a per-sample process function, and a reset. Replace it with your own code; nothing in it needs to know about Audiospan.
+`src/biquad.h` looks like most hand-written DSP: a prepare call that takes the sample rate, setters that compute coefficients, a per-sample process function and a reset. Replace it with your own code. Nothing in it needs to know about Audiospan.
 
 `src/biquad.h`
 
@@ -92,11 +95,11 @@ class Biquad {
 };
 ```
 
-If your code is spread over several files, list the `.cpp` files under `sources` in `audiospan.config.json` and any header directories under `includeDirs`; Rust modules are declared in `lib.rs` as usual. [Porting existing DSP](porting-dsp.md) covers code with a different shape: interleaved buffers, fixed FFT block sizes, JUCE processors, in-place processing.
+If your code is spread over several files, list the `.cpp` files under `sources` in `audiospan.config.json` and any header directories under `includeDirs`. Rust modules are declared in `lib.rs` as usual. [Porting existing DSP](../porting-dsp/) covers code with a different shape: interleaved buffers, fixed FFT block sizes, JUCE processors, in-place processing.
 
 ## 3. The adapter
 
-`src/plugin.cpp` is the whole bridge between your DSP and the host. It is one class with a constructor, `process()`, a `parameters()` accessor, and two optional members (`reset` and `getOutput`); the `AUDIOSPAN_DEFINE_EFFECT` line generates every ABI export around it.
+`src/plugin.cpp` is the whole bridge between your DSP and the host. It is one class with a constructor, `process()`, a `parameters()` accessor, and two optional members, `reset` and `getOutput`. The `AUDIOSPAN_DEFINE_EFFECT` line generates every ABI export around it.
 
 `src/plugin.cpp`
 
@@ -176,16 +179,16 @@ AUDIOSPAN_DEFINE_EFFECT(FilterEffect, 16)
 // touched
 ```
 
-What each part is for:
+What each part does:
 
-- **The constructor is where allocation goes.** `config.sampleRate` and `config.maxOutputChannels` are known there, so the vector of filters is sized once. `process()` allocates nothing; the host detects memory growth during a block and treats it as a failure.
-- **`parameters()` hands the helper your `Parameters` object**, built from the generated `plugin::kParameters` table. The helper then clamps every incoming value to its range, smooths float parameters over about 20 ms at block rate (integers, booleans and enums switch instantly), applies values instantly before the first block so presets and restored state do not fade in, and implements set/get, state and reset. You never write a `switch` over parameter indices.
-- **`params_.value(i)` is the value for this block**; `params_.changed(i)` tells you when to recompute coefficients, and `params_.ramp(i, frames)` gives a per-sample ramp for gains and mixes. `params_.target(i)` is the last value the host set.
-- **`reset()` clears DSP history** and is optional. Parameters persist across it; the helper snaps the smoothers for you.
+- **The constructor is where allocation goes.** `config.sampleRate` and `config.maxOutputChannels` are known there, so the vector of filters is sized once. `process()` allocates nothing. If memory grows during a block, the host treats that block as a failure.
+- **`parameters()` hands the helper your `Parameters` object**, built from the generated `plugin::kParameters` table. From then on the helper clamps every incoming value to its range, smooths float parameters over about 20 ms at block rate (integers, booleans and enums switch at once), applies values at once before the first block so presets and restored state do not fade in, and implements set, get, state and reset. You never write a `switch` over parameter indices.
+- **`params_.value(i)` is the value for this block.** `params_.changed(i)` tells you when to recompute coefficients. `params_.ramp(i, frames)` gives a per-sample ramp for gains and mixes. `params_.target(i)` is the last value the host set.
+- **`reset()` clears DSP history.** It is optional. Parameters survive it, and the helper snaps the smoothers for you.
 - **`getOutput()` is optional** and serves the manifest's `outputs` array: read-only values the host polls between blocks and shows as meters. Compute them in `process()`, store a member, return it here.
-- **There is no state code.** With no `writeState`/`readState`, the helper serialises the parameter values in a small versioned blob and validates it on the way back. Add the three state methods only when the plugin has state its parameters do not capture.
+- **There is no state code.** Without `writeState` and `readState`, the helper saves the parameter values in a small versioned blob and validates it on the way back. Add the three state methods only when the plugin has state its parameters do not capture.
 
-The generated header your adapter includes looks like this; `audiospan build` rewrites it from `plugin.json` every time, so indices and ranges cannot drift from the manifest:
+This is the generated header the adapter includes. `audiospan build` rewrites it from `plugin.json` every time, so the indices and ranges can never drift from the manifest:
 
 `generated/audiospan_params.h`
 
@@ -317,12 +320,12 @@ impl Effect for FilterEffect {
 audiospan_define_effect!(FilterEffect, 16);
 ```
 
-The `Effect` trait's `set_parameter`, `get_parameter`, `reset` and the three state methods have defaults that use the `Parameters` you return from `parameters()`/`parameters_mut()`; `latency_frames` and `get_output` default to "not provided". Implement only what you need. `abi::log` compiles to nothing unless the crate is built with the `audiospan-log` feature, which `audiospan build --dev` enables.
+The `Effect` trait has default implementations of `set_parameter`, `get_parameter`, `reset` and the three state methods. They use the `Parameters` you return from `parameters()` and `parameters_mut()`. `latency_frames` and `get_output` default to "not provided". Implement only what you need. `abi::log` compiles to nothing unless the crate is built with the `audiospan-log` feature, which `audiospan build --dev` turns on.
 </details>
 
 ## 4. Describe it
 
-`plugin.json` is the single source of truth for every host, for the default UI, and now for your adapter's constants.
+`plugin.json` is the single source of truth: for every host, for the default UI, and for the constants in your adapter.
 
 `plugin.json`
 
@@ -357,12 +360,12 @@ The `Effect` trait's `set_parameter`, `get_parameter`, `reset` and the three sta
 }
 ```
 
-- `"scale": "logarithmic"` makes the cutoff knob travel in octaves, so 20 Hz to 20 kHz has its midpoint near 630 Hz instead of 10 kHz. The value reaching your plugin is still plain hertz. Resonance uses the same scale because Q is perceived logarithmically too.
-- `"display"` chooses the control and formatting; hosts render a knob labelled `1000 Hz`, `300 Hz`, and so on.
-- `"outputs"` declares the level meter. Because this array is non-empty, the build fails validation unless the module exports `audiospan_get_output`, which the helper generates from your `getOutput`.
-- Everything you do not state has a sensible default: `state` and `latencyFrames` and `maxFramesPerProcess` and resource limits are all filled in. `"capabilities": { "presets": true }` is the one flag worth setting, so the preset files load.
+- `"scale": "logarithmic"` makes the cutoff knob travel in octaves, so the midpoint between 20 Hz and 20 kHz sits near 630 Hz instead of 10 kHz. The value that reaches your plugin is still plain hertz. Resonance uses the same scale, because Q is perceived logarithmically too.
+- `"display"` picks the control and the formatting. Hosts render a knob labelled `1000 Hz`, `300 Hz` and so on.
+- `"outputs"` declares the level meter. Because this array is not empty, the build fails validation unless the module exports `audiospan_get_output`, which the helper generates from your `getOutput`.
+- Everything you leave out gets a sensible default: `state`, `latencyFrames`, `maxFramesPerProcess` and the resource limits are all filled in. `"capabilities": { "presets": true }` is the one flag worth setting, so the preset files load.
 
-Presets are plain state documents (`presets/dark.json` sets 300 Hz and Q 1.5). Rename a parameter or change a range, run `audiospan build`, and the generated header, the typed declarations for your app, and the sandbox all follow.
+Presets are plain state documents; `presets/dark.json` sets 300 Hz and a Q of 1.5. Rename a parameter or change a range, run `audiospan build`, and the generated header, the typed declarations for your app and the sandbox all follow.
 
 ## 5. Build, test, listen
 
@@ -370,11 +373,11 @@ Presets are plain state documents (`presets/dark.json` sets 300 Hz and Q 1.5). R
 audiospan build
 ```
 
-The CLI regenerates `generated/audiospan_params.h`, prints the exact `emcc` (or `cargo`) command, writes `dist/` with `module.wasm`, `plugin.json`, `plugin.d.ts` and `presets/`, and validates the artifact: manifest rules, required and optional exports against the manifest, imports against the allowlist, the memory maximum, and `WebAssembly.validate`. Modules are built with SIMD and link-time optimisation; the filter is about 36 KB.
+The CLI regenerates `generated/audiospan_params.h`, prints the exact `emcc` (or `cargo`) command, writes `dist/` with `module.wasm`, `plugin.json`, `plugin.d.ts` and `presets/`, and validates the result: the manifest rules, required and optional exports against the manifest, imports against the allowlist, the memory maximum, and `WebAssembly.validate`. Modules are built with SIMD and link-time optimisation. The filter comes out at about 36 KB.
 
 ### Test vectors
 
-`audiospan test` instantiates `dist/module.wasm` in Node, runs generic checks every plugin must pass (defaults round-trip, bad indices rejected, finite output, varying frame counts, state round-trip and garbage rejection, the optional exports), then your `test/vectors.json`. For a filter, impulse responses are the natural check; the template ships two, computed from the same formulas in double precision.
+`audiospan test` instantiates `dist/module.wasm` in Node. It first runs the generic checks every plugin has to pass (defaults round-trip, bad indices rejected, finite output, varying frame counts, state round-trip and garbage rejection, the optional exports), then your `test/vectors.json`. For a filter, impulse responses are the natural check. The template ships two, computed from the same formulas in double precision.
 
 `test/vectors.json`
 
@@ -392,7 +395,7 @@ The CLI regenerates `generated/audiospan_params.h`, prints the exact `emcc` (or 
 }
 ```
 
-You do not have to compute references by hand. Add a case without `expect` and run `audiospan test --update`: the CLI records the current output into the file, and from then on any change in behaviour fails the test.
+You do not have to work out reference values by hand. Add a case without `expect` and run `audiospan test --update`. The CLI records the current output into the file, and from then on any change in behaviour fails the test.
 
 ```json
 { "name": "dark preset, sine", "parameters": { "cutoff": 300, "q": 1.5 }, "input": "sine", "frames": 32, "channels": 1 }
@@ -404,19 +407,19 @@ You do not have to compute references by hand. Add a case without `expect` and r
 audiospan dev --watch
 ```
 
-This serves the project and prints a sandbox URL. Click **Start audio**, pick a source (oscillator, noise, microphone), and you get the panel your users will see: two knobs with logarithmic travel, the level meter, the preset menu, bypass, save and restore, and a log of every event. With `--watch`, saving any source file rebuilds the module and the sandbox reloads it while keeping your settings.
+This serves the project and prints a sandbox URL. Click **Start audio**, pick a source (oscillator, noise or microphone), and you get the panel your users will see: two knobs with logarithmic travel, the level meter, the preset menu, bypass, save and restore, and a log of every event. With `--watch`, saving any source file rebuilds the module, and the sandbox reloads it while keeping your settings.
 
-For a line in that log from inside the plugin, build with logging compiled in:
+To get a line in that log from inside the plugin, build with logging compiled in:
 
 ```sh
 audiospan dev --watch --dev     # or: audiospan build --dev
 ```
 
-`audiospan::logDebug("filter: instance created")` in the template's constructor then shows up as `plugin debug: filter: instance created`. A `--dev` module imports a host function, so production hosts refuse it; `audiospan validate` warns, and a plain `audiospan build` before shipping removes it.
+The `audiospan::logDebug("filter: instance created")` call in the template's constructor then shows up as `plugin debug: filter: instance created`. A `--dev` module imports a host function, so production hosts refuse it. `audiospan validate` warns about it, and a plain `audiospan build` before shipping removes it.
 
 ## 6. Put it in your React app
 
-Two cases. Starting fresh, let the CLI generate the app with the plugin already wired in; adding to an app you have, let it drop the pieces into place. Either way the integration is one component file, and nothing besides the plugin's `dist/` folder is served: the AudioWorklet script is embedded in `@audiospan/react`.
+There are two cases. Starting fresh, let the CLI generate the app with the plugin already wired in. Adding to an app you already have, let it drop the pieces into place. Either way the integration is one component file, and the only thing served besides your site is the plugin's `dist/` folder. The AudioWorklet script is embedded in `@audiospan/react`.
 
 ### A new app
 
@@ -428,7 +431,7 @@ npm run plugin      # audiospan build --root ../lowpass → public/plugins/lowpa
 npm run dev         # open the URL, click "Start audio", allow the microphone
 ```
 
-(If you already created the plugin in step 1, run the same command with `--force`, or pass `--app-dir` to choose the app location.) The app is Vite plus React plus TypeScript; the plugin project's `audiospan.config.json` now points `outDir` and `typesOut` into it, so every `npm run plugin` refreshes both the artifact and the typed ids.
+If you already created the plugin in step 1, run the same command with `--force`, or pass `--app-dir` to choose where the app goes. The app is Vite plus React plus TypeScript. The plugin project's `audiospan.config.json` now points `outDir` and `typesOut` into it, so every `npm run plugin` refreshes both the artifact and the typed ids.
 
 ### An existing app
 
@@ -438,7 +441,7 @@ npx @audiospan/cli init --language cpp --name lowpass --vendor "Example Audio" -
 npm install && npm run plugin
 ```
 
-This creates the plugin project under `audiospan/lowpass/` (move your DSP in as in step 2), writes `src/plugins/lowpass.d.ts` and `src/audiospan/Lowpass.tsx`, adds `@audiospan/react` and the `plugin` / `plugin:watch` scripts to `package.json`, and touches nothing else. In a Next.js app-router project the files go under `app/`; the component starts with `"use client"`.
+This creates the plugin project under `audiospan/lowpass/` (move your DSP in as in step 2), writes `src/plugins/lowpass.d.ts` and `src/audiospan/Lowpass.tsx`, and adds `@audiospan/react`, `@audiospan/cli` (as a devDependency, so the scripts need no global install) and the `plugin` / `plugin:watch` scripts to `package.json`. It touches nothing else. In a Next.js app-router project the files go under `app/`, and the component starts with `"use client"`.
 
 ### The component
 
@@ -495,16 +498,16 @@ export function Lowpass() {
 
 Three hooks and a handful of components:
 
-- `useAudiospanHost` owns the `AudioContext` and the Audiospan host; `start()` runs from the click, `stop()` tears down, and unmounting does too.
-- `usePlugin<LowpassPlugin>` loads the plugin into the chain once the host runs and mirrors its values, meter outputs, bypass and latency into state. The generated type makes `plugin.values.cutoff`, `plugin.setParameter("cutoff", …)` and `plugin.loadPreset("dark")` compile-time checked; `plugin.setParameter("cuttoff", …)` is an error.
-- `useAudioSource` connects the microphone while the host runs and stops the tracks when it does not. An `<audio>` element, a `MediaStream`, a decoded `AudioBuffer` or `(context) => AudioNode` work the same way.
-- `ParameterControls` renders a knob or slider per parameter with logarithmic travel where the manifest says so, `Meters` the level meter, `PresetSelect` and `BypassButton` the rest. For your own layout, `<Knob plugin={plugin} id="cutoff" />` and friends place single controls, and `useParameter(plugin, "cutoff")` gives value, normalized position, setters and formatter for a component of your own.
+- `useAudiospanHost` owns the `AudioContext` and the Audiospan host. `start()` runs from the click. `stop()` tears everything down, and so does unmounting.
+- `usePlugin<LowpassPlugin>` loads the plugin into the chain once the host runs and mirrors its values, meter outputs, bypass and latency into React state. The generated type makes `plugin.values.cutoff`, `plugin.setParameter("cutoff", …)` and `plugin.loadPreset("dark")` compile-time checked. `plugin.setParameter("cuttoff", …)` is an error.
+- `useAudioSource` connects the microphone while the host runs and stops the tracks when it does not. An `<audio>` element, a `MediaStream`, a decoded `AudioBuffer` or a `(context) => AudioNode` function work the same way.
+- `ParameterControls` renders a knob or slider per parameter, with logarithmic travel where the manifest asks for it. `Meters` renders the level meter, and `PresetSelect` and `BypassButton` the rest. For your own layout, `<Knob plugin={plugin} id="cutoff" />` and friends place single controls, and `useParameter(plugin, "cutoff")` gives you the value, the normalized position, setters and a formatter for a component of your own.
 
-Settings persistence is one more hook call away: `plugin.plugin?.getState()` returns JSON you can keep in `localStorage` and pass back as `initialState` in `usePlugin`'s options.
+Saving settings is one call away: `plugin.plugin?.getState()` returns JSON you can keep in `localStorage` and pass back as `initialState` in `usePlugin`'s options.
 
 ### Without React
 
-The same app in plain TypeScript is `AudiospanHost.create({ audioContext })`, `host.addPlugin<LowpassPlugin>(url)`, `host.connectSource(node)`, `host.connectDestination(audioContext.destination)` and `renderPluginPanel(element, plugin)`; [Web app integration](web-app-integration.md) has it in full, with bundler notes.
+The same app in plain TypeScript is `AudiospanHost.create({ audioContext })`, `host.addPlugin<LowpassPlugin>(url)`, `host.connectSource(node)`, `host.connectDestination(audioContext.destination)` and `renderPluginPanel(element, plugin)`. [Web app integration](../web-app-integration/) has it in full, with bundler notes.
 
 ## 7. Ship it
 
@@ -513,19 +516,19 @@ cd ../lowpass
 audiospan pack          # dist/../com.example.lowpass-0.1.0.audiospan.tar.gz with SHA-256 checksums
 ```
 
-The archive is for distribution to other hosts; your own app just deploys `public/` with the rest of the site. Static hosting is all it needs, with these properties:
+The archive is for distributing the plugin to other hosts. Your own app just deploys `public/` with the rest of the site. Static hosting is all it needs, as long as:
 
-- **HTTPS** (or `localhost`): AudioWorklet requires a secure context.
-- **`.wasm` served as `application/wasm`.** Every major static host and CDN does this; a dev server that returns `application/octet-stream` makes loading fail with `MODULE_INVALID`.
-- **Same origin** for the plugin, or an explicit `allowedPluginOrigins` entry in the host's `pluginPolicy` plus CORS headers on the plugin files.
-- **Content Security Policy:** if you set `script-src`, add `'wasm-unsafe-eval'` so the worklet may compile the module, and `blob:` for the embedded worklet (or serve `@audiospan/runtime/dist/audiospan-worklet.js` and pass `workletUrl`). No cross-origin isolation, `SharedArrayBuffer`, or special headers are needed.
-- **Caching:** put the plugin version in the path (`/plugins/lowpass/0.1.0/`) or let your build hash the files, so a new build is never served against a cached manifest.
-- **Microphone:** `getUserMedia` also requires a secure context and a user gesture; the generated component asks when the user clicks Start.
+- **It is HTTPS** (or `localhost`). AudioWorklet requires a secure context.
+- **`.wasm` is served as `application/wasm`.** Every major static host and CDN does this. A dev server that returns `application/octet-stream` makes loading fail with `MODULE_INVALID`.
+- **The plugin is on the same origin**, or listed in `allowedPluginOrigins` in the host's `pluginPolicy`, with CORS headers on the plugin files.
+- **Your Content Security Policy allows it.** If you set `script-src`, add `'wasm-unsafe-eval'` so the worklet can compile the module, and `blob:` for the embedded worklet (or serve `@audiospan/runtime/dist/audiospan-worklet.js` and pass `workletUrl`). No cross-origin isolation, `SharedArrayBuffer` or special headers are needed.
+- **Caches cannot mix versions.** Put the plugin version in the path (`/plugins/lowpass/0.1.0/`) or let your build hash the files, so a new build is never served against a cached manifest.
+- **The microphone can be asked for.** `getUserMedia` also needs a secure context and a user gesture. The generated component asks when the user clicks Start.
 
 ## 8. Where to go next
 
-- [Porting existing DSP](porting-dsp.md): interleaved buffers, fixed block sizes, JUCE and VST3 concepts, denormals, dependencies, and a pre-ship checklist.
-- [Web app integration](web-app-integration.md): bundlers and frameworks, audio sources, several plugins in a chain, custom UIs, error handling.
-- [Plugin authoring (C++)](plugin-authoring.md) and [Rust](rust-plugin-authoring.md): the full effect class contract, the `Parameters` and `Smoothed` helpers, and build options.
-- [Manifest schema](manifest-schema.md): every field, including `skew`, `automatable`, `bipolar` and the output formats.
-- [Real-time safety](realtime-safety.md): what `process()` may and may not do, and what the runtime does when it fails.
+- [Porting existing DSP](../porting-dsp/): interleaved buffers, fixed block sizes, JUCE and VST3 concepts, denormals, dependencies, and a checklist before you ship.
+- [Web app integration](../web-app-integration/): bundlers and frameworks, audio sources, several plugins in a chain, custom UIs, error handling.
+- [Plugin authoring (C++)](../plugin-authoring/) and [Rust](../rust-plugin-authoring/): the full effect class contract, the `Parameters` and `Smoothed` helpers, and build options.
+- [Manifest schema](../manifest-schema/): every field, including `skew`, `automatable`, `bipolar` and the output formats.
+- [Real-time safety](../realtime-safety/): what `process()` may and may not do, and what the runtime does when it fails.

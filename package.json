@@ -21,7 +21,10 @@
     "validate:artifacts": "node scripts/validate-artifact.mjs plugins/gain-cpp/dist plugins/gain-rust/dist",
     "sync:abi": "node scripts/sync-abi-headers.mjs",
     "dev": "node packages/cli/dist/index.js dev --root examples/vanilla-web --open index.html",
-    "clean": "rm -rf packages/*/dist examples/*/dist plugins/*/dist plugins/*/target test-results playwright-report",
+    "docs:dev": "pnpm --filter @audiospan/docs dev",
+    "docs:build": "pnpm --filter @audiospan/docs build",
+    "docs:preview": "pnpm --filter @audiospan/docs preview",
+    "clean": "rm -rf packages/*/dist examples/*/dist plugins/*/dist plugins/*/target apps/docs/dist apps/docs/.astro test-results playwright-report",
     "test:all": "pnpm test && pnpm test:browser",
     "build:worklet": "pnpm --filter @audiospan/runtime run bundle && node packages/sdk/scripts/embed-worklet.mjs"
   },

@@ -47,6 +47,9 @@ jobs:
       - name: Validate artifacts
         run: pnpm validate:artifacts
 
+      - name: Build the documentation site
+        run: pnpm docs:build
+
       - name: Build and test the Rust templates from a fresh `audiospan create`
         run: |
           for template in filter gain; do

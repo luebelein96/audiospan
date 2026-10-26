@@ -5,7 +5,7 @@
  * and a plugin compiled to WebAssembly. It compiles as C and C++ and is
  * mirrored exactly by the Rust bindings in the Rust starter template.
  *
- * Rules (see docs/abi.md for the full text):
+ * Rules (see https://luebelein96.github.io/audiospan/abi/ for the full text):
  *   - Every export returns AS_OK or a defined error code. Never trap or throw
  *     across this boundary on purpose.
  *   - The host owns all process buffers and the process descriptor. The plugin

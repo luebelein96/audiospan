@@ -1,8 +1,10 @@
 packages:
   - "packages/*"
   - "examples/*"
-allowBuilds:
-  esbuild: set this to true or false
+  - "apps/*"
 
-onlyBuiltDependencies:
-  - esbuild
+# Dependencies allowed to run install scripts (pnpm 11 fails the install otherwise).
+# esbuild and sharp only check that their prebuilt binary is present.
+allowBuilds:
+  esbuild: true
+  sharp: true

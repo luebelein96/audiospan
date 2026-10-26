@@ -1,0 +1,277 @@
+/* Audiospan brand: the palette of the default plugin panel (@audiospan/ui), applied to Starlight. */
+:root {
+  --sl-font: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sl-font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --sl-color-accent-low: #152744;
+  --sl-color-accent: #4d8df0;
+  --sl-color-accent-high: #6ea8fe;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #e8e8ec;
+  --sl-color-gray-2: #c8ccd8;
+  --sl-color-gray-3: #9a9fb0;
+  --sl-color-gray-4: #5f6474;
+  --sl-color-gray-5: #3a3e4b;
+  --sl-color-gray-6: #1d1f26;
+  --sl-color-black: #12141a;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #dce8ff;
+  --sl-color-accent: #2f6fe0;
+  --sl-color-accent-high: #16366f;
+  --sl-color-white: #12141a;
+  --sl-color-gray-1: #1d1f26;
+  --sl-color-gray-2: #2d3039;
+  --sl-color-gray-3: #5f6474;
+  --sl-color-gray-4: #8a8fa0;
+  --sl-color-gray-5: #c4c8d4;
+  --sl-color-gray-6: #e8eaf0;
+  --sl-color-gray-7: #f3f4f8;
+  --sl-color-black: #ffffff;
+}
+
+/* Type */
+body {
+  font-feature-settings: "cv11", "ss01", "liga";
+}
+.site-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.sl-markdown-content :is(h1, h2, h3, h4) {
+  letter-spacing: -0.02em;
+}
+.sl-markdown-content h2 {
+  font-size: var(--sl-text-3xl);
+}
+.sl-markdown-content code:not(:where(.expressive-code *)) {
+  font-size: 0.86em;
+  border-radius: 0.3rem;
+}
+
+/* Code blocks */
+.expressive-code .frame {
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.6);
+}
+.expressive-code .frame .header {
+  font-family: var(--sl-font-mono);
+}
+
+/* Tables fit the content column and wrap instead of scrolling sideways (reference tables are prose-heavy). */
+.sl-markdown-content table:not(:where(.not-content *)) {
+  display: table;
+  width: 100%;
+}
+.sl-markdown-content :is(td, th):not(:where(.not-content *)),
+.sl-markdown-content :is(td, th) code:not(:where(.not-content *)) {
+  /* break-word keeps whole words and code tokens out of the column-width calculation, so a short
+     first column ("Manifest", "setParameter") is not squeezed by a long neighbour. */
+  overflow-wrap: break-word;
+}
+.sl-markdown-content :is(td, th) code.as-long-code:not(:where(.not-content *)) {
+  /* Long tokens (paths, attribute lines; tagged by plugins/rehype-long-code.mjs) may break anywhere,
+     so one long path never forces a table wider than the page. */
+  overflow-wrap: anywhere;
+}
+
+/* Pages without a table of contents (the troubleshooting table) get a wider content column. */
+html:not([data-has-toc]) {
+  --sl-content-width: 60rem;
+}
+
+/* Cards (Starlight's own rules live in a cascade layer, so these win without extra specificity). */
+.card {
+  border-radius: 0.9rem;
+  border-color: var(--sl-color-gray-5);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sl-color-gray-6) 75%, transparent), var(--sl-color-black) 90%);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.card:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-2px);
+}
+.card .title {
+  font-size: var(--sl-text-lg);
+  letter-spacing: -0.01em;
+}
+.card .icon {
+  border-color: color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+  background-color: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+  border-radius: 0.5rem;
+  padding: 0.3em;
+}
+.card .body {
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+  line-height: 1.6;
+}
+.sl-link-card {
+  border-radius: 0.9rem;
+}
+
+/* Landing page: the three steps under the hero */
+.as-steps {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  counter-reset: step;
+}
+.as-step {
+  position: relative;
+  padding: 1.15rem 1.25rem 1.15rem 3.6rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sl-color-gray-6) 70%, transparent), transparent);
+}
+.as-step::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 1.15rem;
+  top: 1.1rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  font-size: var(--sl-text-sm);
+}
+.as-step h3 {
+  margin: 0 0 0.3rem;
+  font-size: var(--sl-text-lg);
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+.as-step p {
+  margin: 0;
+  font-size: var(--sl-text-sm);
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+}
+.as-step code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.85em;
+  color: var(--sl-color-gray-1);
+  background: color-mix(in srgb, var(--sl-color-gray-5) 50%, transparent);
+  border-radius: 0.3rem;
+  padding: 0.05em 0.3em;
+}
+
+/* Landing page: wider content column (Starlight caps pages without a sidebar at 67.5rem) */
+html:not([data-has-sidebar])[data-has-hero] {
+  --sl-content-width: 74rem;
+}
+
+/* Landing page: prose beside code */
+.sl-markdown-content .as-split {
+  display: grid;
+  gap: 1.25rem 3rem;
+  align-items: start;
+  margin-top: 4rem;
+}
+.sl-markdown-content .as-split__text > h2 {
+  margin-top: 0;
+}
+.sl-markdown-content .as-split__text > p {
+  color: var(--sl-color-gray-2);
+}
+.sl-markdown-content .as-split__text ul {
+  padding-inline-start: 1.1rem;
+  color: var(--sl-color-gray-2);
+}
+.sl-markdown-content .as-split__text li + li {
+  margin-top: 0.4rem;
+}
+.sl-markdown-content .as-split__code {
+  --sl-text-code: 0.8125rem;
+}
+.sl-markdown-content .as-split__code > :first-child {
+  margin-top: 0;
+}
+.sl-markdown-content .as-split ~ h2 {
+  margin-top: 4rem;
+}
+
+@media (min-width: 50rem) {
+  .as-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 64rem) {
+  .sl-markdown-content .as-split {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+  .sl-markdown-content .as-split--reverse {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+  .sl-markdown-content .as-split--reverse .as-split__text {
+    order: 2;
+  }
+  .sl-markdown-content .as-split__text {
+    position: sticky;
+    top: calc(var(--sl-nav-height) + 2rem);
+  }
+}
+
+/* Align the top of the prose column with the top of the code column: Starlight's sibling-margin rule
+   would otherwise push the second grid item and the tab list down by 1rem each. */
+.sl-markdown-content .as-split > *,
+.sl-markdown-content .as-split__text > :first-child,
+.sl-markdown-content .as-split__code > :first-child,
+.sl-markdown-content .as-split__code > starlight-tabs {
+  margin-top: 0;
+}
+
+/* Previous / Next links at the bottom of each page */
+.pagination-links {
+  gap: 0.75rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sl-color-hairline);
+}
+.pagination-links > a {
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--sl-color-gray-6) 55%, transparent);
+  box-shadow: none;
+  color: var(--sl-color-gray-3);
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.pagination-links > a:hover {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-gray-2);
+}
+.pagination-links > a > span {
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+.pagination-links .link-title {
+  font-size: var(--sl-text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--sl-color-white);
+}
+.pagination-links > a > svg {
+  color: var(--sl-color-accent-high);
+  transition: transform 0.2s ease;
+}
+.pagination-links > a[rel="prev"]:hover > svg {
+  transform: translateX(-3px);
+}
+.pagination-links > a[rel="next"]:hover > svg {
+  transform: translateX(3px);
+}

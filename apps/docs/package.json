@@ -1,0 +1,30 @@
+{
+  "name": "@audiospan/docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Audiospan documentation site (Astro Starlight).",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/copy-plugin.mjs && astro dev",
+    "build": "node scripts/copy-plugin.mjs && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.3.0",
+    "@astrojs/starlight": "^0.37.0",
+    "@audiospan/react": "workspace:*",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "astro": "^5.17.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "starlight-typedoc": "^0.21.0",
+    "typedoc": "^0.28.0",
+    "typedoc-plugin-markdown": "^4.6.0"
+  }
+}

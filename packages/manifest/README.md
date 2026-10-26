@@ -9,4 +9,4 @@ if (result.ok) console.log(result.manifest.parameters);
 else console.error(result.errors);
 ```
 
-Docs: [manifest schema](../../docs/manifest-schema.md).
+Docs: [manifest schema](https://luebelein96.github.io/audiospan/manifest-schema/).

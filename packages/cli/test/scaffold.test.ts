@@ -15,6 +15,7 @@ describe("create --app react", () => {
     const pkg = JSON.parse(readFileSync(join(appDir, "package.json"), "utf8")) as { name: string; dependencies: Record<string, string>; scripts: Record<string, string> };
     expect(pkg.name).toBe("my-filter-app");
     expect(pkg.dependencies["@audiospan/react"]).toMatch(/^\^\d/);
+    expect(pkg.devDependencies["@audiospan/cli"]).toMatch(/^\^\d/); // the plugin scripts run it; no global install needed
     expect(pkg.scripts["plugin"]).toBe("audiospan build --root ../my-filter");
     expect(existsSync(join(appDir, "vite.config.ts"))).toBe(true);
     expect(readFileSync(join(appDir, "src/App.tsx"), "utf8")).toContain('import { MyFilter } from "./audiospan/MyFilter.tsx";');
@@ -59,6 +60,7 @@ describe("init (existing React project)", () => {
     expect(readFileSync(join(dir, "src/audiospan/WarmFilter.tsx"), "utf8")).toContain('"use client";');
     const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as { dependencies: Record<string, string>; scripts: Record<string, string> };
     expect(pkg.dependencies["@audiospan/react"]).toMatch(/^\^\d/);
+    expect(pkg.devDependencies["@audiospan/cli"]).toMatch(/^\^\d/); // the plugin scripts run it; no global install needed
     expect(pkg.dependencies["react"]).toBe("^19.0.0"); // untouched
     expect(pkg.scripts["dev"]).toBe("vite"); // untouched
     expect(pkg.scripts["plugin"]).toBe("audiospan build --root audiospan/warm-filter");

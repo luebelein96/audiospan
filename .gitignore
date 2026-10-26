@@ -14,3 +14,6 @@ playwright-report/
 # Generated bindings of the reference plugins (they use the explicit ABI, not the generated table).
 plugins/*/generated/
 packages/sdk/src/generated/
+
+# Astro
+.astro/

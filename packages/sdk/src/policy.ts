@@ -4,7 +4,7 @@ export type UiMode = "none" | "hosted-ui" | "trusted-custom-ui";
 
 /**
  * Limits the host applies to every plugin it loads. Defaults are conservative
- * and documented in docs/security-model.md.
+ * and documented at https://luebelein96.github.io/audiospan/security-model/.
  */
 export interface PluginPolicy {
   /** Maximum size of plugin.json in bytes. */

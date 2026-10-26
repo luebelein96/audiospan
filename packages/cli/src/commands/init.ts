@@ -32,6 +32,8 @@ export interface InitResult {
   packageManager: "pnpm" | "yarn" | "bun" | "npm";
   /** True when @audiospan/react was added to package.json by this run. */
   dependencyAdded: boolean;
+  /** True when @audiospan/cli was added to devDependencies by this run (the `plugin` scripts run it). */
+  cliAdded: boolean;
   nextSteps: string[];
 }
 
@@ -47,7 +49,7 @@ async function isDirectory(path: string): Promise<boolean> {
  * Add Audiospan to an existing React project: a plugin project under
  * `audiospan/<name>/` that builds into `public/plugins/<name>/`, typed
  * declarations in the source tree, a ready component, the `@audiospan/react`
- * dependency, and two npm scripts.
+ * dependency, `@audiospan/cli` as a devDependency, and two npm scripts.
  */
 export async function initProject(options: InitOptions): Promise<InitResult> {
   const appDir = resolve(options.directory);
@@ -83,13 +85,20 @@ export async function initProject(options: InitOptions): Promise<InitResult> {
   if (!manifest.ok) throw new CliError("generated manifest is invalid", 1);
   const wired = await wirePluginIntoApp({ pluginDir, appDir, sourceDir, projectName: name, manifest: manifest.manifest, force: options.force ?? false });
 
-  // Dependency and scripts. The file is rewritten with two-space indentation.
+  // Dependencies and scripts. The file is rewritten with two-space indentation.
   const version = await cliVersion();
   const dependencies = (pkg["dependencies"] as Record<string, string> | undefined) ?? {};
   const dependencyAdded = !("@audiospan/react" in dependencies);
   if (dependencyAdded) {
     dependencies["@audiospan/react"] = `^${version}`;
     pkg["dependencies"] = dependencies;
+  }
+  // The scripts below call `audiospan`, so the CLI is a devDependency and no global install is needed.
+  const devDependencies = (pkg["devDependencies"] as Record<string, string> | undefined) ?? {};
+  const cliAdded = !("@audiospan/cli" in dependencies) && !("@audiospan/cli" in devDependencies);
+  if (cliAdded) {
+    devDependencies["@audiospan/cli"] = `^${version}`;
+    pkg["devDependencies"] = devDependencies;
   }
   const scripts = (pkg["scripts"] as Record<string, string> | undefined) ?? {};
   const pluginRel = relativePath(appDir, pluginDir).replace(/^\.\//, "");
@@ -108,11 +117,11 @@ export async function initProject(options: InitOptions): Promise<InitResult> {
   const componentRel = relativePath(appDir, wired.componentPath).replace(/^\.\//, "");
   const importPath = `./${relativePath(join(appDir, sourceDir), wired.componentPath).replace(/^\.\//, "").replace(/\.tsx$/, "")}`;
   const nextSteps = [
-    ...(options.install ? [] : [`${packageManager} install                # adds @audiospan/react`]),
+    ...(options.install ? [] : [`${packageManager} install                # adds @audiospan/react and @audiospan/cli`]),
     `${packageManager === "npm" ? "npm run" : packageManager} plugin                 # audiospan build (needs ${options.language === "cpp" ? "emcc" : "Rust + the wasm32 target"}) -> public/plugins/${name}/`,
     `# render <${wired.componentName} /> from ${componentRel}:`,
     `#   import { ${wired.componentName} } from "${importPath}";`,
     `# your DSP goes in ${pluginRel}/src/; \`${packageManager === "npm" ? "npm run" : packageManager} plugin:watch\` rebuilds on save`,
   ];
-  return { appDirectory: appDir, pluginDirectory: pluginDir, componentPath: wired.componentPath, typesPath: wired.typesPath, componentName: wired.componentName, sourceDir, packageManager, dependencyAdded, nextSteps };
+  return { appDirectory: appDir, pluginDirectory: pluginDir, componentPath: wired.componentPath, typesPath: wired.typesPath, componentName: wired.componentName, sourceDir, packageManager, dependencyAdded, cliAdded, nextSteps };
 }

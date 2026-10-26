@@ -4,9 +4,9 @@
 - `include/audiospan/effect.hpp`: C++ helper that generates all exports from a plain class (`AUDIOSPAN_DEFINE_EFFECT`).
 - `examples/passthrough.c`: a complete plugin in plain C without the helper, with its manifest.
 
-The Rust bindings live in `packages/cli/templates/rust-effect/src/abi.rs`. `pnpm sync:abi` copies the headers to the C++ template and reference plugin; `pnpm sync:abi --check` (run by tests and CI) fails on drift.
+The Rust bindings live in `abi/rust/abi.rs`. `pnpm sync:abi` copies the headers to the C++ template and reference plugin; `pnpm sync:abi --check` (run by tests and CI) fails on drift.
 
-Full contract: [docs/abi.md](../docs/abi.md).
+Full contract: [the ABI reference](https://luebelein96.github.io/audiospan/abi/).
 
 ```sh
 cd examples

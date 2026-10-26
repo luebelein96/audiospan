@@ -14,4 +14,4 @@ plugin.setParameter("cutoff", 440);                            // ids checked at
 
 `loadPlugin`, `createPlugin`, `createChain` and `connectChain` are the same steps individually. `@audiospan/sdk/testing` exposes `createInProcessRuntime()` to run the real runtime without a browser. `@audiospan/sdk/bundle` is a single-file ESM build for buildless pages; `@audiospan/sdk/worklet` is the worklet file for hosts whose Content Security Policy forbids `blob:` scripts (`workletUrl`).
 
-Docs: [host integration](../../docs/host-integration.md), [web app integration](../../docs/web-app-integration.md).
+Docs: [host integration](https://luebelein96.github.io/audiospan/host-integration/), [web app integration](https://luebelein96.github.io/audiospan/web-app-integration/).

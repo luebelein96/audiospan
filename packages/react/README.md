@@ -38,4 +38,4 @@ export function Lowpass() {
 
 Safe under StrictMode and hot reloading: each mount owns one plugin instance. Works as a Next.js client component (`"use client"`). Built on `createPluginStore` from `@audiospan/sdk`, a framework-neutral subscribe/getSnapshot store that other framework adapters can reuse.
 
-Docs: [Web app integration](../../docs/web-app-integration.md), [From your DSP to a web app](../../docs/from-dsp-to-web.md).
+Docs: [Web app integration](https://luebelein96.github.io/audiospan/web-app-integration/), [From your DSP to a web app](https://luebelein96.github.io/audiospan/from-dsp-to-web/).

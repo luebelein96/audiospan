@@ -1,0 +1,111 @@
+---
+// Starlight `Hero` override: the copy on the left, the live demo on the right.
+import { LinkButton } from "@astrojs/starlight/components";
+import LiveDemo from "./LiveDemo.tsx";
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero ?? {};
+---
+
+<div class="as-hero">
+  <div class="as-hero__copy">
+    <p class="as-hero__eyebrow">Audio plugin SDK for the web</p>
+    <h1 id="_top" data-page-title set:html={title} />
+    {tagline && <p class="as-hero__tagline" set:html={tagline} />}
+    {
+      actions.length > 0 && (
+        <div class="as-hero__actions">
+          {actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+            <LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+              {text}
+              {icon?.html && <Fragment set:html={icon.html} />}
+            </LinkButton>
+          ))}
+        </div>
+      )
+    }
+    <p class="as-hero__cmd"><span aria-hidden="true">$</span> npx @audiospan/cli create my-effect --app react</p>
+  </div>
+  <div class="as-hero__demo">
+    <LiveDemo client:only="react">
+      <div slot="fallback" class="as-demo as-demo--skeleton not-content" aria-hidden="true"></div>
+    </LiveDemo>
+  </div>
+</div>
+
+<style>
+  .as-hero {
+    position: relative;
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+    padding-block: clamp(1.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+  }
+  .as-hero::before {
+    content: "";
+    position: absolute;
+    inset: -30% 0 auto;
+    height: 90%;
+    background: radial-gradient(45% 55% at 72% 45%, color-mix(in srgb, var(--sl-color-accent) 28%, transparent), transparent 70%);
+    filter: blur(24px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .as-hero__eyebrow {
+    margin: 0 0 1rem;
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sl-color-accent-high);
+  }
+  h1 {
+    margin: 0;
+    max-width: 14ch;
+    font-size: clamp(var(--sl-text-4xl), 1.5rem + 3.2vw, var(--sl-text-6xl));
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: var(--sl-color-white);
+  }
+  .as-hero__tagline {
+    margin: 1.25rem 0 0;
+    max-width: 46ch;
+    font-size: clamp(var(--sl-text-base), 0.6rem + 1vw, var(--sl-text-xl));
+    line-height: 1.55;
+    color: var(--sl-color-gray-2);
+  }
+  .as-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 2rem;
+  }
+  .as-hero__cmd {
+    display: inline-block;
+    max-width: 100%;
+    margin: 1.75rem 0 0;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    overflow-wrap: anywhere;
+    background: color-mix(in srgb, var(--sl-color-gray-6) 60%, transparent);
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-2);
+  }
+  .as-hero__cmd > span:first-child {
+    color: var(--sl-color-gray-4);
+    margin-inline-end: 0.35rem;
+  }
+  .as-hero__demo {
+    min-width: 0;
+  }
+  @media (min-width: 64rem) {
+    .as-hero {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 36rem);
+      gap: 3.5rem;
+    }
+  }
+</style>

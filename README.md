@@ -20,7 +20,7 @@ Status: **0.1.0, MVP**. Web-first, serial effects only.
 | Reference plugins | `plugins/gain-cpp`, `plugins/gain-rust` | The same gain effect in both languages, used by the conformance suite |
 | Examples | `examples/vanilla-web`, `examples/react` | Buildless browser example and a React hook |
 
-New here? [From your DSP to a web app](docs/from-dsp-to-web.md) takes an existing C++ or Rust filter class to a running React app, with every file complete.
+New here? [From your DSP to a web app](https://luebelein96.github.io/audiospan/from-dsp-to-web/) takes an existing C++ or Rust filter class to a running React app, with every file complete.
 
 ## Quickstart: a new plugin and a React app, one command
 
@@ -57,7 +57,7 @@ export function Lowpass() {
 ```sh
 cd my-react-app
 npx @audiospan/cli init --language cpp --name lowpass     # plugin project in audiospan/lowpass/, component in src/audiospan/Lowpass.tsx
-npm install && npm run plugin                              # @audiospan/react was added; build the plugin into public/plugins/
+npm install && npm run plugin                              # @audiospan/react and @audiospan/cli were added; build the plugin into public/plugins/
 ```
 
 Then render `<Lowpass />` anywhere. Your DSP goes in `audiospan/lowpass/src/`; `npm run plugin:watch` rebuilds on every save.
@@ -73,7 +73,7 @@ audiospan dev --watch    # sandbox with knobs, meters, presets, state and diagno
 audiospan pack           # deterministic dist/<id>-<version>.audiospan.tar.gz with checksums
 ```
 
-A plugin is one class: a constructor, `process()`, and a `parameters()` accessor. Indices, ranges and defaults are declared once in `plugin.json`; the helper clamps, smooths, serialises and resets parameters for you.
+Your plugin is a class with a constructor, `process()` and a `parameters()` accessor. Ranges and defaults are declared once in `plugin.json`. The helper clamps, smooths, saves and resets parameters for you.
 
 ## Without React
 
@@ -103,30 +103,33 @@ pnpm build:examples
 pnpm test:browser     # Playwright + headless Chromium: real AudioWorklet rendering
 pnpm bench            # Node benchmark of the processing loop
 pnpm dev              # serve examples/vanilla-web
+pnpm docs:dev         # documentation site at http://localhost:4321/audiospan/
 ```
 
 ## Documentation
 
+Full documentation: https://luebelein96.github.io/audiospan/ (source in `apps/docs/`, an Astro Starlight site with a live demo; `pnpm docs:dev` serves it locally).
+
 Start here:
 
-- [From your DSP to a web app](docs/from-dsp-to-web.md): the end-to-end tutorial, from an existing filter class to a deployed page
-- [Getting started](docs/getting-started.md): hear the reference plugin in five minutes
+- [From your DSP to a web app](https://luebelein96.github.io/audiospan/from-dsp-to-web/): the end-to-end tutorial, from an existing filter class to a deployed page
+- [Getting started](https://luebelein96.github.io/audiospan/getting-started/): hear the reference plugin in five minutes
 
 Writing plugins:
 
-- [Porting existing DSP](docs/porting-dsp.md): interleaved buffers, fixed block sizes, JUCE and VST3 concepts, denormals, dependencies
-- [Plugin authoring (C++)](docs/plugin-authoring.md) and [Rust](docs/rust-plugin-authoring.md): the effect class contract and build options
-- [Manifest schema](docs/manifest-schema.md), [Real-time safety](docs/realtime-safety.md), [CLI reference](docs/cli.md)
+- [Porting existing DSP](https://luebelein96.github.io/audiospan/porting-dsp/): interleaved buffers, fixed block sizes, JUCE and VST3 concepts, denormals, dependencies
+- [Plugin authoring (C++)](https://luebelein96.github.io/audiospan/plugin-authoring/) and [Rust](https://luebelein96.github.io/audiospan/rust-plugin-authoring/): the effect class contract and build options
+- [Manifest schema](https://luebelein96.github.io/audiospan/manifest-schema/), [Real-time safety](https://luebelein96.github.io/audiospan/realtime-safety/), [CLI reference](https://luebelein96.github.io/audiospan/cli/)
 
 Building apps:
 
-- [Web app integration](docs/web-app-integration.md): bundlers and frameworks, audio sources, chains, custom controls, persistence, deployment
-- [Host integration](docs/host-integration.md): the `@audiospan/sdk` API
-- [Troubleshooting](docs/troubleshooting.md), [Browser support](docs/browser-support.md)
+- [Web app integration](https://luebelein96.github.io/audiospan/web-app-integration/): bundlers and frameworks, audio sources, chains, custom controls, persistence, deployment
+- [Host integration](https://luebelein96.github.io/audiospan/host-integration/): the `@audiospan/sdk` API
+- [Troubleshooting](https://luebelein96.github.io/audiospan/troubleshooting/), [Browser support](https://luebelein96.github.io/audiospan/browser-support/)
 
 Under the hood:
 
-- [ABI](docs/abi.md), [Architecture](docs/architecture.md), [Security model](docs/security-model.md), [Future features](docs/future-features.md)
+- [ABI](https://luebelein96.github.io/audiospan/abi/), [Architecture](https://luebelein96.github.io/audiospan/architecture/), [Security model](https://luebelein96.github.io/audiospan/security-model/), [Future features](docs/future-features.md)
 
 ## License
 

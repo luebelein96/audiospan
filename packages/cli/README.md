@@ -8,4 +8,4 @@ audiospan build && audiospan test && audiospan dev --watch
 audiospan validate dist && audiospan pack
 ```
 
-Commands: `create`, `build`, `generate`, `test` (`--update` records expectations), `validate`, `pack`, `dev` (`--watch`), `doctor`. `build` regenerates `generated/audiospan_params.{h,rs}` and `dist/plugin.d.ts` from `plugin.json`. Docs: [CLI reference](../../docs/cli.md).
+Commands: `create`, `build`, `generate`, `test` (`--update` records expectations), `validate`, `pack`, `dev` (`--watch`), `doctor`. `build` regenerates `generated/audiospan_params.{h,rs}` and `dist/plugin.d.ts` from `plugin.json`. Docs: [CLI reference](https://luebelein96.github.io/audiospan/cli/).

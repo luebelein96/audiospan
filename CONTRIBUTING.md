@@ -15,6 +15,7 @@ Browser tests:
 
 ```sh
 pnpm build:examples
+pnpm docs:build                     # optional: tests/browser/docs.spec.ts skips without apps/docs/dist
 npx playwright install chromium     # once
 pnpm test:browser
 ```
@@ -24,7 +25,7 @@ pnpm test:browser
 - `abi/` is the source of truth for the C ABI (`abi/include/audiospan/`) and the Rust bindings (`abi/rust/abi.rs`). `pnpm sync:abi` copies both into the CLI templates and the reference plugins; `tests/abi/header-sync.test.ts` fails on drift and checks export names and constants across the header, the Rust file and the TypeScript constants.
 - `packages/runtime/src/runtime.ts` is the audio hot path. Keep it small, allocation-free in steady state (there is a test for that), and free of logging.
 - `packages/sdk` must never expose WASM pointers or memory; everything crosses the worklet boundary as validated messages (`packages/runtime/src/protocol.ts`).
-- Every public API needs a test and a doc entry. Docs describe shipped behaviour only.
+- Every public API needs a test and a doc entry. Docs describe shipped behaviour only. User-facing docs live in `apps/docs/src/content/docs/` (an Astro Starlight site, deployed to GitHub Pages by `.github/workflows/docs.yml`; `pnpm docs:dev` serves it). `docs/` holds internal planning documents.
 
 ## Coding standards
 
@@ -36,7 +37,7 @@ TypeScript strict with `exactOptionalPropertyTypes`; no `any` in public APIs; ex
 
 ## Changing the ABI
 
-The ABI is frozen at version 1: `AUDIOSPAN_ABI_VERSION` in the header, reported by `audiospan_get_abi_version`. Additive changes extend the descriptor structs through `struct_size` or add optional exports that the host detects at load (`audiospan_get_latency` and `audiospan_get_output` are the pattern: absent or `AS_ERROR_UNSUPPORTED` means "not provided"); breaking changes bump the version constant, and the host rejects modules that report a different one. Update the header, the C++ helper, the Rust bindings, `packages/runtime/src/abi.ts`, `docs/abi.md`, and the conformance suite together.
+The ABI is frozen at version 1: `AUDIOSPAN_ABI_VERSION` in the header, reported by `audiospan_get_abi_version`. Additive changes extend the descriptor structs through `struct_size` or add optional exports that the host detects at load (`audiospan_get_latency` and `audiospan_get_output` are the pattern: absent or `AS_ERROR_UNSUPPORTED` means "not provided"); breaking changes bump the version constant, and the host rejects modules that report a different one. Update the header, the C++ helper, the Rust bindings, `packages/runtime/src/abi.ts`, `apps/docs/src/content/docs/abi.md`, and the conformance suite together.
 
 ## Pull requests
 

@@ -43,7 +43,7 @@ const COMMAND_HELP: Record<string, string> = {
   init: `audiospan init
   Add Audiospan to an existing React project: a plugin project under audiospan/<name>/ that builds into
   public/plugins/<name>/, typed declarations in src/plugins/, a ready <Component /> in src/audiospan/, the
-  @audiospan/react dependency and "plugin" / "plugin:watch" scripts in package.json.
+  @audiospan/react dependency, @audiospan/cli as a devDependency, and "plugin" / "plugin:watch" scripts in package.json.
   --root <dir>          The React project (default: .)
   --name <plugin-name>  Plugin project name (default: my-effect)
   --language cpp|rust   Plugin language (default: cpp)
